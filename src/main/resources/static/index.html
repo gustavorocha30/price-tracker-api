@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Tracker - Meu Robô de Ofertas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #1a1a2e;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .form-group.small {
+            flex: 0.3;
+        }
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #e94560;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #d1304b;
+        }
+        .product-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .product-card {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 5px solid #0f3460;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product-info h4 {
+            margin: 0 0 5px 0;
+            color: #1a1a2e;
+            font-size: 18px;
+        }
+        .product-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+            word-break: break-all;
+        }
+        .price-tags {
+            display: flex;
+            gap: 15px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        .price-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        .price-box small {
+            display: block;
+            color: #888;
+        }
+        .price-box strong {
+            font-size: 18px;
+            color: #28a745;
+        }
+        .price-box.target strong {
+            color: #e94560;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            padding: 8px 12px;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 Price Tracker API</h1>
+        <p>Monitoramento automático de preços com Web Scraping e Alertas via E-mail</p>
+    </div>
+
+    <div class="form-section">
+        <div class="form-group">
+            <label for="url">Link do Produto (Mercado Livre, Amazon, Kabum)</label>
+            <input type="url" id="url" placeholder="https://www.mercadolivre.com.br/produto-exemplo">
+        </div>
+        <div class="form-group small">
+            <label for="targetPrice">Preço Alvo (R$)</label>
+            <input type="number" id="targetPrice" placeholder="Ex: 1500.00" step="0.01">
+        </div>
+        <button onclick="cadastrarProduto()">➕ Monitorar</button>
+    </div>
+
+    <div class="product-list" id="lista-produtos">
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8080/api/products';
+
+    // Função para buscar e renderizar os produtos
+    async function carregarProdutos() {
+        const listaDiv = document.getElementById('lista-produtos');
+        listaDiv.innerHTML = "<p>Carregando produtos monitorados...</p>";
+
+        try {
+            const resposta = await fetch(API_URL);
+            const produtos = await resposta.json();
+
+            if (produtos.length === 0) {
+                listaDiv.innerHTML = "<p style='text-align:center; color:#666;'>Nenhum produto sendo monitorado. Cadastre um link acima!</p>";
+                return;
+            }
+
+            listaDiv.innerHTML = "";
+            produtos.forEach(prod => {
+                // Se o robô ainda não rodou, o título e preço atual estarão nulos (null)
+                const titulo = prod.title ? prod.title : "⏳ Aguardando Robô processar...";
+                const precoAtual = prod.currentPrice ? `R$ ${prod.currentPrice.toFixed(2)}` : "R$ --";
+                const precoAlvo = prod.targetPrice ? `R$ ${prod.targetPrice.toFixed(2)}` : "R$ --";
+                const ultimaChecagem = prod.lastChecked ? new Date(prod.lastChecked).toLocaleString() : "Ainda não verificado";
+
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-info">
+                        <h4>${titulo}</h4>
+                        <p><a href="${prod.url}" target="_blank" style="color: #007bff; text-decoration: none;">🔗 Link Original do Produto</a></p>
+                        <p style="font-size: 12px; margin-top:5px;">🕒 Última checagem: ${ultimaChecagem}</p>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="price-tags">
+                            <div class="price-box">
+                                <small>Preço Atual</small>
+                                <strong>${precoAtual}</strong>
+                            </div>
+                            <div class="price-box target">
+                                <small>Preço Alvo</small>
+                                <strong>${precoAlvo}</strong>
+                            </div>
+                        </div>
+                        <button class="btn-delete" onclick="deletarProduto(${prod.id})">🗑️</button>
+                    </div>
+                `;
+                listaDiv.appendChild(card);
+            });
+        } catch (erro) {
+            listaDiv.innerHTML = `<p style="color:red;">Erro ao carregar dados da API: ${erro.message}</p>`;
+        }
+    }
+
+    // Função para cadastrar um novo link no banco
+    async function cadastrarProduto() {
+        const urlInput = document.getElementById('url').value;
+        const targetPriceInput = document.getElementById('targetPrice').value;
+
+        if (!urlInput || !targetPriceInput) {
+            alert("Preencha a URL e o Preço Alvo!");
+            return;
+        }
+
+        const payload = {
+            url: urlInput,
+            targetPrice: parseFloat(targetPriceInput)
+        };
+
+        try {
+            const resposta = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resposta.ok) {
+                document.getElementById('url').value = "";
+                document.getElementById('targetPrice').value = "";
+                carregarProdutos(); // Recarrega a tela na hora
+            } else {
+                alert("Erro ao salvar produto.");
+            }
+        } catch (erro) {
+            alert("Erro de conexão com a API.");
+        }
+    }
+
+    // Função para deletar um monitoramento
+    async function deletarProduto(id) {
+        if(confirm("Tem certeza que deseja parar de rastrear este produto?")) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            carregarProdutos(); // Recarrega a tela
+        }
+    }
+
+    // Carrega a lista automaticamente ao abrir a tela
+    window.onload = carregarProdutos;
+</script>
+
+</body>
+</html>
