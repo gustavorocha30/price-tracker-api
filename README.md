@@ -27,7 +27,3 @@ Este é um projeto Full Stack desenvolvido para rastrear automaticamente os pre�
 * Maven instalado
 * PostgreSQL rodando localmente (na porta `5432`)
 * Uma senha de aplicativo gerada na sua conta do Google (para envio de e-mails)
-
-### 1. Clonar o repositório
-```bash
-git clone [https://github.com/SEU_USUARIO/price-tracker-api.git](https://github.com/SEU_USUARIO/price-tracker-api.git)
