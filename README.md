@@ -2,7 +2,7 @@
 
 Este é um projeto Full Stack desenvolvido para rastrear automaticamente os preços de produtos em e-commerces (como o Mercado Livre) e notificar o usuário por e-mail quando o valor atingir um "Preço Alvo" estabelecido.
 
-> 🔗 **Demonstração:** [Assista ao vídeo do projeto funcionando no LinkedIn](LINK_DO_SEU_POST_OU_VIDEO_AQUI)
+> 🔗 **Demonstração:** [Assista ao vídeo do projeto funcionando no LinkedIn](https://www.linkedin.com/posts/grocha-dev_java-springboot-webscraping-ugcPost-7472645766935904256-lGuq/)
 
 ## 🧠 Como Funciona
 
